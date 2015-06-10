@@ -114,7 +114,17 @@ def tire(anchor, anchor_nr, dist, radius, width, direction, begin):
 def road(position):
     nodes = []
     edges = []
-    for i in range(0, 800, 2):
-        nodes.extend(((i, position, 150, 'road'), (i, position, -150, 'road')))
+    for i in range(-800, 800, 2):
+        nodes.extend(((i, roadFun(i), 150, 'road'), (i, roadFun(i), -150, 'road')))
         edges.append((i, i + 1, 10))
     return (nodes, edges)
+
+def roadFun(position):
+    if (500<position):
+        return 360.0
+    if (300<position<=500):
+        return (-(1.0/4.0) * float(position) + 485.0)
+    if (100<position<=300):
+        return ((1.0/10.0) * float(position) + 380.0)
+    if (position<=100):
+        return 390.0

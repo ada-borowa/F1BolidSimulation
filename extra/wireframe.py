@@ -3,6 +3,7 @@
 from basic.node import Node
 from basic.edge import Edge
 from extra import addVectors, Vector3d
+from construction.construction import roadFun
 import math
 import time
 
@@ -29,6 +30,7 @@ class Wireframe:
         #ground is determined from the top of the screen
         self.groundLvl = 360 # TODO deprecated
         self.groundVector = Vector3d(0, self.groundLvl, 0)
+        self.roadFun = roadFun
 
     #adding wireframe elements
     def addNodes(self, nodeList):
@@ -131,8 +133,7 @@ class Wireframe:
         self.ground = False
 
         for node in self.nodes:
-            nodeVector = Vector3d(node.x, node.y, node.z)
-            if nodeVector.norm() * nodeVector.cos(self.groundVector) > self.groundLvl and node.part=='tire':
+            if self.roadFun(node.x) <= node.y and node.part=='tire':
                 self.ground = True
                 break
 
