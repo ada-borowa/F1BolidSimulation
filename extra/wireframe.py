@@ -1,7 +1,9 @@
 #-*- coding: utf-8 -*-
 
-from node import *
-from edge import *
+from basic.node import Node
+from basic.edge import Edge
+from extra import addVectors
+import math
 
 #defined as variable height in construction.py
 springLength = 80

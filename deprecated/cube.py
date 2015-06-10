@@ -1,8 +1,7 @@
 #-*- coding: utf-8 -*-
 
-import pygame
-from wireframe import *
-from projectionViewer import *
+from extra.projectionViewer import ProjectionViewer
+from extra.wireframe import Wireframe
 
 if __name__ == "__main__":
     cube_nodes = [(x,y,z) for x in (50,250) for y in (50,250) for z in (50,250)]

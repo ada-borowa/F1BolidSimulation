@@ -1,7 +1,6 @@
 #-*- coding: utf-8 -*-
 
-import math
-from extra import *
+from extra.extra import *
 
 class Node:
     """Points in space with x,y,z coordinates."""

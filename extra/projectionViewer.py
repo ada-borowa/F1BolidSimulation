@@ -1,7 +1,6 @@
 #-*- coding: utf-8 -*-
 
 import pygame
-from wireframe import *
 
 key_to_function = {
     pygame.K_LEFT:   (lambda x: x.translateAll('x', -10)),

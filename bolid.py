@@ -1,8 +1,8 @@
 #-*- coding: utf-8 -*-
 
-from projectionViewer import *
-from construction import *
-from wireframe import *
+from extra.projectionViewer import *
+from construction.construction import *
+from extra.wireframe import Wireframe
 
 if __name__ == "__main__":
 
