@@ -110,3 +110,9 @@ def findGroundVectorAfterRotation(C, D):
 
     return (x, y)
 
+def rotateSlightly(vector):
+    angle = math.atan2(vector.y, vector.z)
+    vector.rotateX(angle)
+    vector.rotateY(math.pi/180)
+    vector.rotateX(-angle)
+    return vector
