@@ -62,3 +62,11 @@ class Vector3d:
         numerator = self.dot(second)
         denominator = self.norm() * second.norm()
         return numerator/denominator
+
+
+def rotateSlightly(vector):
+    angle = math.atan2(vector.y, vector.z)
+    vector.rotateX(angle)
+    vector.rotateY(math.pi/180)
+    vector.rotateX(-angle)
+    return vector
