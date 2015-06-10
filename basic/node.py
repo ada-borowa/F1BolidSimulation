@@ -1,6 +1,6 @@
 #-*- coding: utf-8 -*-
 
-from extra.extra import *
+from extra.extra import Vector3d
 
 class Node:
     """Points in space with x,y,z coordinates."""
@@ -11,11 +11,9 @@ class Node:
         self.z = coordinates2
         #part defines part of bolid: body, tire, tire-anchor, spring-connector or road
         self.part = part
-        self.speed = -0.5
-        self.angle = math.pi/2
+        self.speedVector = Vector3d(-0.5, 0, 0)
 
 
-
-
-
-
+    def parpendicularToGroundSpeedVector(self, groundVector):
+        scalar = (groundVector.unitVector()).dot(self.speedVector)
+        return groundVector.unitVector().mul(scalar)

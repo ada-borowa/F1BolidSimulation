@@ -2,13 +2,15 @@
 
 from basic.node import Node
 from basic.edge import Edge
-from extra import addVectors
+from extra import addVectors, Vector3d
 import math
+import time
 
 #defined as variable height in construction.py
 springLength = 80
 #ground is determined from the top of the screen
-groundLvl = 360
+groundLvl = 360 # TODO deprecated
+groundVector = Vector3d(0, 360, 0)
 
 class Wireframe:
     def __init__(self):
@@ -17,13 +19,13 @@ class Wireframe:
         self.springs = []
         self.ground = False
         #gravity
-        self.gravity = (math.pi, 0.001)
+        self.gravityVector = Vector3d(0, 0.001, 0)
         #spring
-        self.k = 0.01
-        self.spring = (math.pi, 0)
+        self.k = 0.00000000001
+        self.springForceVector = Vector3d(0,0,0)
         #absorber
-        self.beta = 0.01
-        self.absorber = (math.pi, 0)
+        self.beta = 0.1
+        self.absorberForceVector = Vector3d(0,0,0)
         #gravity, spring, absorber: constants to be determined!
 
     #adding wireframe elements
@@ -63,15 +65,23 @@ class Wireframe:
             for node in self.nodes:
                 setattr(node, axis, getattr(node, axis) + d)
 
-    def scale(self, (centre_x, centre_y), scale):
-        """ Scale the wireframe from the centre of the screen """
+    def translate3d(self, vector):
 
         for node in self.nodes:
-            node.x = centre_x + scale * (node.x - centre_x)
-            node.y = centre_y + scale * (node.y - centre_y)
-            node.z *= scale
-            node.speed *= scale
-        self.ground = centre_y + scale * (self.ground - centre_y)
+            node.x += vector.x
+            node.y += vector.y
+            node.z += vector.z
+
+    # def scale(self, (centre_x, centre_y), scale):
+    #     """ Scale the wireframe from the centre of the screen """
+    #     # TODO
+    #
+    #     # for node in self.nodes:
+    #     #     node.x = centre_x + scale * (node.x - centre_x)
+    #     #     node.y = centre_y + scale * (node.y - centre_y)
+    #     #     node.z *= scale
+    #     #     node.speed *= scale
+    #     # self.ground = centre_y + scale * (self.ground - centre_y)
 
     def findCentre(self):
         """ Find the centre of the wireframe. """
@@ -111,13 +121,13 @@ class Wireframe:
             node.x = cx + d * math.cos(theta)
             node.y = cy + d * math.sin(theta)
 
-    def checkGround(self):
+    def checkGround(self): #TODO obrót
         """Checks if any node is touching ground y = 320"""
 
         self.ground = False
 
         for node in self.nodes:
-            if node.y > groundLvl:
+            if node.y > groundLvl and node.part=='tire':
                 self.ground = True
 
     def checkSprings(self):
@@ -126,28 +136,38 @@ class Wireframe:
         length = math.sqrt(math.pow(edge.start.x - edge.stop.x, 2) + math.pow(edge.start.y - edge.stop.y, 2) +
                            math.pow(edge.start.z - edge.stop.z, 2))
         # spring F = -kx
-        self.spring = (math.pi, -self.k*(springLength - length))
+        forceLength = springLength-length
+        self.springForceVector = Vector3d(edge.start.x - edge.stop.x, edge.start.y - edge.stop.y, edge.start.z - edge.stop.z).unitVector().mul(forceLength).mul(self.k)
+
         #going down, absorber F = beta*v
-        if math.pi/2 < edge.start.angle < 3*math.pi/2:
-            absForce = -self.beta * edge.start.speed
-        #going up
-        else:
-            absForce = self.beta * edge.start.speed
-        self.absorber = (math.pi, absForce)
+
+        diffSpeed = edge.start.speedVector.mul(-1).add(edge.stop.speedVector)
+        print 'speed:', (diffSpeed.x, diffSpeed.y, diffSpeed.z)
+
+        self.absorberForceVector = diffSpeed.mul(self.beta)
+
+    def _hitedGroundSpeed(self, groundVector, speedVector):
+        scalar = -2 * (groundVector.unitVector()).dot(speedVector)
+        return (groundVector.unitVector()).mul(scalar).add(speedVector)
+
 
     def move(self):
         #evaluates position in (x,y) of every node
         for node in self.nodes:
             #gravity
-            (node.angle, node.speed) = addVectors((node.angle, node.speed), self.gravity)
+            node.speedVector = node.speedVector.add(self.gravityVector)
             #bouncing off the ground for tires and suspension
             if self.ground == True and node.part != 'body':
-                node.angle = math.pi-node.angle
+                # node.angle = math.pi-node.angle
+                node.speedVector = self._hitedGroundSpeed(groundVector, node.speedVector)
             if node.part == 'body':
+                pass
                 #adds spring and absorber influence to the body nodes
-               (node.angle, node.speed) = addVectors((node.angle, node.speed), self.spring)
-               (node.angle, node.speed) = addVectors((node.angle, node.speed), self.absorber)
+                node.speedVector = node.speedVector.add(self.springForceVector)
+                node.speedVector = node.speedVector.add(self.absorberForceVector)
             #changes position
-            node.x += math.sin(node.angle) * node.speed
-            node.y -= math.cos(node.angle) * node.speed
+            tempPosition = Vector3d(node.x, node.y, node.z).add(node.speedVector)
+            node.x = tempPosition.x
+            node.y = tempPosition.y
+            node.z = tempPosition.z
 

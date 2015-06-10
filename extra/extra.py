@@ -17,10 +17,8 @@ class Vector3d:
         self.y = y
         self.z = z
 
-    def addVectors3d(self, other):
-        self.x += other.x
-        self.y += other.y
-        self.z += other.z
+    def add(self, other):
+        return Vector3d(self.x + other.x, self.y + other.y, self.z + other.z)
 
     #rotation along all axes, math magic
     def rotateX(self, radians):
@@ -47,3 +45,15 @@ class Vector3d:
         self.x = d * math.cos(theta)
         self.y = d * math.sin(theta)
 
+    def dot(self, second):
+        return self.x*second.x + self.y*second.y + self.z*second.z
+
+    def mul(self, scalar):
+        return Vector3d(scalar*self.x, scalar*self.y, scalar*self.z)
+
+    def norm(self):
+        return math.sqrt(self.x*self.x + self.y*self.y + self.z*self.z)
+
+    def unitVector(self):
+        norm = self.norm()
+        return Vector3d(self.x/float(norm), self.y/float(norm), self.z/float(norm))
