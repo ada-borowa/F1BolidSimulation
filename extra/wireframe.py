@@ -13,18 +13,20 @@ class Wireframe:
         self.nodes = []
         self.edges = []
         self.springs = []
-        self.ground = False
+        self.groundFront = False
+        self.groundBack = False
         #gravity
-        self.gravityVector = Vector3d(0, 0.01, 0)
+        self.gravityVector = Vector3d(0, 0.03, 0)
         #spring
         self.response = 2.0
-        self.k = 0.005
-        self.springForceVector = Vector3d(0,0,0)
+        self.k = 0.004
+        self.springForceVectorFront = Vector3d(0,0,0)
+        self.springForceVectorRear = Vector3d(0,0,0)
         #absorber
-        self.beta = 0.05
-        self.absorberForceVector = Vector3d(0,0,0)
+        self.beta = 0.1
+        self.absorberForceVectorFront = Vector3d(0,0,0)
+        self.absorberForceVectorRear = Vector3d(0,0,0)
         #gravity, spring, absorber: constants to be determined!
-
         #defined as variable height in construction.py
         self.springLength = 80
         #ground is determined from the top of the screen
@@ -77,17 +79,6 @@ class Wireframe:
             node.y += vector.y
             node.z += vector.z
 
-    # def scale(self, (centre_x, centre_y), scale):
-    #     """ Scale the wireframe from the centre of the screen """
-    #     # TODO
-    #
-    #     # for node in self.nodes:
-    #     #     node.x = centre_x + scale * (node.x - centre_x)
-    #     #     node.y = centre_y + scale * (node.y - centre_y)
-    #     #     node.z *= scale
-    #     #     node.speed *= scale
-    #     # self.ground = centre_y + scale * (self.ground - centre_y)
-
     def findCentre(self):
         """ Find the centre of the wireframe. """
 
@@ -127,17 +118,20 @@ class Wireframe:
             node.x_transformed = cx + d * math.cos(theta)
             node.y_transformed = cy + d * math.sin(theta)
 
-    def checkGround(self): #TODO obrót
+    def checkGround(self):
         """Checks if any node is touching ground y = 320"""
 
-        self.ground = False
+        self.groundFront = False
+        self.groundBack = False
 
-        for node in self.nodes:
-            if self.roadFun(node.x) <= node.y and node.part=='tire':
-                self.ground = True
+        for i, node in enumerate(self.nodes):
+            if self.roadFun(node.x) <= node.y and self.frontTireIndexesRight[0] <= i < self.frontTireIndexesRight[1]:
+                self.groundFront = True
                 break
-
-
+        for i, node in enumerate(self.nodes):
+            if self.roadFun(node.x) <= node.y and self.rearTireIndexesRight[0] <= i < self.rearTireIndexesRight[1]:
+                self.groundBack = True
+                break
 
     def checkSprings(self):
         #checks only one spring, cause the rest is the same
@@ -146,40 +140,103 @@ class Wireframe:
                            math.pow(edge.start.z - edge.stop.z, 2))
         # spring F = -kx
         forceLength = self.springLength-length
-        self.springForceVector = Vector3d(edge.start.x - edge.stop.x, edge.start.y - edge.stop.y, edge.start.z - edge.stop.z).unitVector().mul(forceLength).mul(self.k)
+        self.springForceVectorFront = Vector3d(edge.start.x - edge.stop.x, edge.start.y - edge.stop.y, edge.start.z - edge.stop.z).unitVector().mul(forceLength).mul(self.k)
 
         #going down, absorber F = beta*v
 
         diffSpeed = edge.start.speedVector.mul(-1).add(edge.stop.speedVector)
+        self.absorberForceVectorFront = diffSpeed.mul(self.beta)
 
-        self.absorberForceVector = diffSpeed.mul(self.beta)
+        diffSpeed = edge.start.speedVector.mul(-1).add(edge.stop.speedVector)
+        self.absorberForceVectorFront = diffSpeed.mul(self.beta)
+
+        edge = self.springs[2]
+        length = math.sqrt(math.pow(edge.start.x - edge.stop.x, 2) + math.pow(edge.start.y - edge.stop.y, 2) +
+                           math.pow(edge.start.z - edge.stop.z, 2))
+        # spring F = -kx
+        forceLength = self.springLength-length
+        self.springForceVectorRear = Vector3d(edge.start.x - edge.stop.x, edge.start.y - edge.stop.y, edge.start.z - edge.stop.z).unitVector().mul(forceLength).mul(self.k)
+
+        diffSpeed = edge.start.speedVector.mul(-1).add(edge.stop.speedVector)
+        self.absorberForceVectorRear = diffSpeed.mul(self.beta)
+
 
     def _hitedGroundSpeed(self, groundVector, speedVector):
         scalar = -2 * (groundVector.unitVector()).dot(speedVector)
-        return (groundVector.unitVector()).mul(scalar).add(speedVector)
+        scalar = -abs(scalar)
+        ret = (groundVector.unitVector()).mul(scalar).add(speedVector)
+        return ret
 
 
     def move(self):
         #evaluates position in (x,y) of every node
-        for node in self.nodes:
+
+        anc1 = self.nodes[self.ancor1index]
+        anc3 = self.nodes[self.ancor3index]
+
+        C = Vector3d(anc3.x-anc1.x, anc3.y-anc1.y, anc3.z-anc1.z)
+
+        for i, node in enumerate(self.nodes):
+            # if node.part == 'body':
+            #     continue
             #gravity
-            node.speedVector = node.speedVector.add(self.gravityVector)
             #bouncing off the ground for tires and suspension
-            if self.ground == True and node.part != 'body':
+            if self.groundFront == True and (self.frontTireIndexesRight[0] <= i < self.frontTireIndexesRight[1] or self.frontTireIndexesLeft[0] <= i < self.frontTireIndexesLeft[1]):
                 pass
+                node.speedVector = node.speedVector.add(self.gravityVector)
                 node.speedVector = self._hitedGroundSpeed(self.groundVector, node.speedVector)
+            elif self.groundBack == True and (self.rearTireIndexesRight[0] <= i < self.rearTireIndexesRight[1] or self.rearTireIndexesLeft[0] <= i < self.rearTireIndexesLeft[1]):
+                node.speedVector = self._hitedGroundSpeed(self.groundVector, node.speedVector)
+                node.speedVector = node.speedVector.add(self.gravityVector)
+            elif (self.frontTireIndexesRight[0] <= i < self.frontTireIndexesRight[1] or self.frontTireIndexesLeft[0] <= i < self.frontTireIndexesLeft[1]):
+                node.speedVector = node.speedVector.add(self.gravityVector)
+                node.speedVector = node.speedVector.add(self.springForceVectorFront.mul(-1*self.response))
+                node.speedVector = node.speedVector.add(self.absorberForceVectorFront.mul(-1*self.response))
+            elif (self.rearTireIndexesRight[0] <= i < self.rearTireIndexesRight[1] or self.rearTireIndexesLeft[0] <= i < self.rearTireIndexesLeft[1]):
+                node.speedVector = node.speedVector.add(self.gravityVector)
+                node.speedVector = node.speedVector.add(self.absorberForceVectorRear.mul(-1*self.response))
+                node.speedVector = node.speedVector.add(self.springForceVectorRear.mul(-1*self.response))
+            elif i in [self.ancor1index, self.ancor2index]:
+                node.speedVector = node.speedVector.add(self.gravityVector)
+                node.speedVector = node.speedVector.add(self.springForceVectorFront) # TODO
+                node.speedVector = node.speedVector.add(self.absorberForceVectorFront)
+            elif i in [self.ancor3index, self.ancor4index]:
+                node.speedVector = node.speedVector.add(self.gravityVector)
+                node.speedVector = node.speedVector.add(self.springForceVectorRear) # TODO
+                node.speedVector = node.speedVector.add(self.absorberForceVectorRear)
+            else:
+                node.speedVector = node.speedVector.add(self.gravityVector)
+                node.speedVector = node.speedVector.add(self.springForceVectorRear) # TODO
+                node.speedVector = node.speedVector.add(self.absorberForceVectorRear)
+
+            #changes position
+            node.x += node.speedVector.x
+            node.y += node.speedVector.y
+            node.z += node.speedVector.z
+
+        anc1new = self.nodes[self.ancor1index]
+        anc3new = self.nodes[self.ancor3index]
+
+        Cnew = Vector3d(anc3new.x-anc1new.x, anc3new.y-anc1new.y, anc3new.z-anc1new.z)
+
+        cosangle = Cnew.cos(C)
+        # print cosangle, C.cos(Cnew)
+        angle = -math.acos(cosangle)
+
+        for i, node in enumerate(self.nodes):
             if node.part == 'body':
                 # adds spring and absorber influence to the body nodes
                 pass
-                node.speedVector = node.speedVector.add(self.springForceVector)
-                node.speedVector = node.speedVector.add(self.absorberForceVector)
-            else:
-                node.speedVector = node.speedVector.add(self.springForceVector.mul(-1*self.response))
-                node.speedVector = node.speedVector.add(self.absorberForceVector.mul(-1*self.response))
+                # node.speedVector = node.speedVector.add(self.springForceVectorFront) # TODO
+                # node.speedVector = node.speedVector.add(self.absorberForceVectorFront)
 
-            #changes position
-            tempPosition = Vector3d(node.x, node.y, node.z).add(node.speedVector)
-            node.x = tempPosition.x
-            node.y = tempPosition.y
-            node.z = tempPosition.z
+                if i in [self.ancor1index, self.ancor2index, self.ancor3index, self.ancor4index]:
+                    continue
+
+                a = Vector3d(node.x-anc1.x, node.y-anc1.y, node.z-anc1.z)
+                a.rotateZ(angle)
+
+                node.x = anc1new.x + a.x
+                node.y = anc1new.y + a.y
+                node.z = anc1new.z + a.z
 

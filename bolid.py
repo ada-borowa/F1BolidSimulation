@@ -35,6 +35,8 @@ if __name__ == "__main__":
     bolid.addEdges(tire_edges1)
     bolid.addSpring(count, count+1)
 
+    bolid.ancor1index = count
+    bolid.frontTireIndexesRight = (count+1, count+len(tire_nodes1))
     count += len(tire_nodes1)
 
     (tire_nodes2, tire_edges2) = tire(anchor2, 9, 10, 30, 30, "left", count-1)
@@ -43,6 +45,8 @@ if __name__ == "__main__":
     bolid.addEdges(tire_edges2)
     bolid.addSpring(count, count+1)
 
+    bolid.ancor2index = count
+    bolid.frontTireIndexesLeft = (count+1, count+len(tire_nodes2))
     count += len(tire_nodes2)
 
     (tire_nodes3, tire_edges3) = tire(anchor3, 21, 10, 30, 30, "right", count-1)
@@ -51,6 +55,8 @@ if __name__ == "__main__":
     bolid.addEdges(tire_edges3)
     bolid.addSpring(count, count+1)
 
+    bolid.ancor3index = count
+    bolid.rearTireIndexesRight = (count+1, count+len(tire_nodes3))
     count += len(tire_nodes3)
 
     (tire_nodes4, tire_edges4) = tire(anchor4, 23, 10, 30, 30, "left", count-1)
@@ -60,6 +66,8 @@ if __name__ == "__main__":
     bolid.addSpring(count, count+1)
     bolid.translate3d(Vector3d(500, 0, 0))
 
+    bolid.ancor4index = count
+    bolid.rearTireIndexesLeft = (count+1, count+len(tire_nodes4))
     count += len(tire_nodes4)
 
     road_wf = Wireframe()
@@ -71,7 +79,7 @@ if __name__ == "__main__":
 
     #Bolid done
 
-    bolid.translate('x', -200)
+    # bolid.translate('x', 200)
 
     pv = ProjectionViewer(800,600)
     pv.addWireframe('bolid', bolid)

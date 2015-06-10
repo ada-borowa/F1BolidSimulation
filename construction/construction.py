@@ -125,6 +125,6 @@ def roadFun(position):
     if (300<position<=500):
         return (-(1.0/4.0) * float(position) + 485.0)
     if (100<position<=300):
-        return ((1.0/10.0) * float(position) + 380.0)
+        return 410.0
     if (position<=100):
-        return 390.0
+        return 420.0
