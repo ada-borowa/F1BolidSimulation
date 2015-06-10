@@ -11,7 +11,7 @@ class Node:
         self.z = coordinates2
         #part defines part of bolid: body, tire, tire-anchor, spring-connector or road
         self.part = part
-        self.speedVector = Vector3d(-0.5, 0, 0)
+        self.speedVector = Vector3d(-1.0, 0, 0)
 
 
     def parpendicularToGroundSpeedVector(self, groundVector):

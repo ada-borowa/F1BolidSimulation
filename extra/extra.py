@@ -28,6 +28,7 @@ class Vector3d:
         theta  = math.atan2(y, z) + radians
         self.z = d * math.cos(theta)
         self.y = d * math.sin(theta)
+        return self
 
     def rotateY(self, radians):
         x      = self.x
@@ -36,6 +37,7 @@ class Vector3d:
         theta  = math.atan2(x, z) + radians
         self.z = d * math.cos(theta)
         self.x = d * math.sin(theta)
+        return self
 
     def rotateZ(self, radians):
         x      = self.x
@@ -44,6 +46,7 @@ class Vector3d:
         theta  = math.atan2(y, x) + radians
         self.x = d * math.cos(theta)
         self.y = d * math.sin(theta)
+        return self
 
     def dot(self, second):
         return self.x*second.x + self.y*second.y + self.z*second.z
@@ -62,3 +65,48 @@ class Vector3d:
         numerator = self.dot(second)
         denominator = self.norm() * second.norm()
         return numerator/denominator
+
+    def rotateX(self, radians):
+        d      = math.hypot(self.y, self.z)
+        theta  = math.atan2(self.y, self.z) + radians
+        self.z = d * math.cos(theta)
+        self.y = d * math.sin(theta)
+
+
+    def rotateY(self, radians):
+        d      = math.hypot(self.x, self.z)
+        theta  = math.atan2(self.x, self.z) + radians
+        self.z = d * math.cos(theta)
+        self.x = d * math.sin(theta)
+
+    def rotateZ(self, radians):
+        d      = math.hypot(self.y, self.x)
+        theta  = math.atan2(self.y, self.x) + radians
+        self.x = d * math.cos(theta)
+        self.y = d * math.sin(theta)
+
+class Point:
+
+    def __init__(self, x, y):
+        self.x = x
+        self.y = y
+
+def findGroundVectorAfterRotation(C, D):
+    F = Point(0,0)
+    C = Point(C[0], C[1])
+    D = Point(D[0], D[1])
+
+    a = (C.y - D.y)/(C.x - D.x)
+    b = C.y - C.x*a
+
+    ap = -a
+    bp = D.y - a*D.x
+
+    aq = a
+    bq = F.y - aq*F.x
+
+    x = (bq - bp)/(ap - aq)
+    y = ap * x + bp
+
+    return (x, y)
+

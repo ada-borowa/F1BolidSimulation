@@ -1,8 +1,10 @@
 #-*- coding: utf-8 -*-
 
-from extra.projectionViewer import *
+from extra.projectionViewer import ProjectionViewer
 from construction.construction import body_nodes, body_edges, tire, road
 from extra.wireframe import Wireframe
+
+from extra.extra import Vector3d
 
 if __name__ == "__main__":
 
@@ -56,7 +58,7 @@ if __name__ == "__main__":
     bolid.addNodes(tire_nodes4)
     bolid.addEdges(tire_edges4)
     bolid.addSpring(count, count+1)
-    bolid.translate('x', 500)
+    bolid.translate3d(Vector3d(500, 0, 0))
 
     count += len(tire_nodes4)
 
@@ -68,6 +70,8 @@ if __name__ == "__main__":
 
 
     #Bolid done
+
+    bolid.translate('x', -200)
 
     pv = ProjectionViewer(800,600)
     pv.addWireframe('bolid', bolid)
