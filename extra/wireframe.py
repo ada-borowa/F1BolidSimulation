@@ -14,12 +14,13 @@ class Wireframe:
         self.springs = []
         self.ground = False
         #gravity
-        self.gravityVector = Vector3d(0, 0.002, 0)
+        self.gravityVector = Vector3d(0, 0.01, 0)
         #spring
-        self.k = 0.001
+        self.response = 2.0
+        self.k = 0.005
         self.springForceVector = Vector3d(0,0,0)
         #absorber
-        self.beta = 0.01
+        self.beta = 0.05
         self.absorberForceVector = Vector3d(0,0,0)
         #gravity, spring, absorber: constants to be determined!
 
@@ -158,7 +159,6 @@ class Wireframe:
             nodeVector = Vector3d(node.x, node.y, node.z)
             if nodeVector.norm() * nodeVector.cos(self.groundVector) > self.groundLvl and node.part=='tire':
                 self.ground = True
-                print "GROUND"
                 break
 
 
@@ -197,6 +197,10 @@ class Wireframe:
                 pass
                 node.speedVector = node.speedVector.add(self.springForceVector)
                 node.speedVector = node.speedVector.add(self.absorberForceVector)
+            else:
+                node.speedVector = node.speedVector.add(self.springForceVector.mul(-1*self.response))
+                node.speedVector = node.speedVector.add(self.absorberForceVector.mul(-1*self.response))
+
             #changes position
             tempPosition = Vector3d(node.x, node.y, node.z).add(node.speedVector)
             node.x = tempPosition.x
