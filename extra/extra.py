@@ -57,3 +57,8 @@ class Vector3d:
     def unitVector(self):
         norm = self.norm()
         return Vector3d(self.x/float(norm), self.y/float(norm), self.z/float(norm))
+
+    def cos(self, second):
+        numerator = self.dot(second)
+        denominator = self.norm() * second.norm()
+        return numerator/denominator
