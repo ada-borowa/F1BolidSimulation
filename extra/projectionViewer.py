@@ -89,6 +89,12 @@ class ProjectionViewer:
 
         rotateFunction = 'rotate' + axis
 
+        bolidWireframe = self.wireframes.get('bolid')
+        if bolidWireframe:
+            centre = bolidWireframe.findCentre()
+        else:
+            centre = (0,0,0)
+
+
         for wireframe in self.wireframes.itervalues():
-            centre = wireframe.findCentre()
             getattr(wireframe, rotateFunction)(centre, theta)

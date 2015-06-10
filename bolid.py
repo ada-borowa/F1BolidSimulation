@@ -1,7 +1,7 @@
 #-*- coding: utf-8 -*-
 
 from extra.projectionViewer import *
-from construction.construction import *
+from construction.construction import body_nodes, body_edges, tire, road
 from extra.wireframe import Wireframe
 
 if __name__ == "__main__":
