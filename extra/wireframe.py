@@ -98,57 +98,32 @@ class Wireframe:
 
     #rotation along all axes, math magic
     def rotateX(self, (cx,cy,cz), radians):
-        self.groundVector.rotateX(radians)
-        self.gravityVector.rotateX(radians)
-        self.absorberForceVector.rotateX(radians)
-        self.springForceVector.rotateX(radians)
         for node in self.nodes:
             y      = node.y - cy
             z      = node.z - cz
             d      = math.hypot(y, z)
             theta  = math.atan2(y, z) + radians
-            node.z = cz + d * math.cos(theta)
-            node.y = cy + d * math.sin(theta)
-            node.speedVector.rotateX(radians)
+            node.z_transformed = cz + d * math.cos(theta)
+            node.y_transformed = cy + d * math.sin(theta)
 
 
     def rotateY(self, (cx,cy,cz), radians):
-        self.groundVector.rotateY(radians)
-        self.gravityVector.rotateY(radians)
-        self.absorberForceVector.rotateY(radians)
-        self.springForceVector.rotateY(radians)
         for node in self.nodes:
             x      = node.x - cx
             z      = node.z - cz
             d      = math.hypot(x, z)
             theta  = math.atan2(x, z) + radians
-            node.z = cz + d * math.cos(theta)
-            node.x = cx + d * math.sin(theta)
-            node.speedVector.rotateY(radians)
+            node.z_transformed = cz + d * math.cos(theta)
+            node.x_transformed = cx + d * math.sin(theta)
 
     def rotateZ(self, (cx,cy,cz), radians):
-        C = (cx, cy)
-        # print (self.groundVector.x,self.groundVector.y, self.groundVector.z)
-        # self.groundVector = self.groundVector.add(
-        #         Vector3d(cx, cy, cz).mul(-1)
-        #     )
-        # self.groundVector.rotateZ(radians)
-        # self.groundVector = self.groundVector.add(
-        #         Vector3d(cx, cy, cz)
-        #     )
-        # print (self.groundVector.x,self.groundVector.y, self.groundVector.z)
-        # print (cx, cy, cz)
-        self.gravityVector.rotateZ(radians)
-        self.absorberForceVector.rotateZ(radians)
-        self.springForceVector.rotateZ(radians)
         for node in self.nodes:
-            x      = node.x - cx
-            y      = node.y - cy
+            x      = node.x_transformed - cx
+            y      = node.y_transformed - cy
             d      = math.hypot(y, x)
             theta  = math.atan2(y, x) + radians
-            node.x = cx + d * math.cos(theta)
-            node.y = cy + d * math.sin(theta)
-            node.speedVector.rotateZ(radians)
+            node.x_transformed = cx + d * math.cos(theta)
+            node.y_transformed = cy + d * math.sin(theta)
 
     def checkGround(self): #TODO obrót
         """Checks if any node is touching ground y = 320"""

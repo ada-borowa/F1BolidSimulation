@@ -33,6 +33,8 @@ class ProjectionViewer:
         self.nodeColour = (255, 255, 255)
         self.edgeColour = (200, 200, 200)
         self.nodeRadius = 0
+        self.rotations = {'X': 0, 'Y': 0, 'Z': 0}
+        self.center = (0,0,0)
 
     def addWireframe(self, name, wireframe):
         """ Add a named wireframe object. """
@@ -62,11 +64,14 @@ class ProjectionViewer:
         self.screen.fill(self.background)
         for wireframe in self.wireframes.values():
             #atm displays only edges
+            wireframe.rotateX(self.center, self.rotations['X'])
+            wireframe.rotateY(self.center, self.rotations['Y'])
+            wireframe.rotateZ(self.center, self.rotations['Z'])
             if self.displayEdges:
                 for edge in wireframe.edges:
-                    pygame.draw.aaline(self.screen, self.edgeColour, (edge.start.x, edge.start.y), (edge.stop.x, edge.stop.y), 1)
+                    pygame.draw.aaline(self.screen, self.edgeColour, (edge.start.x_transformed, edge.start.y_transformed), (edge.stop.x_transformed, edge.stop.y_transformed), 1)
 
-            #if self.displayNodes:
+            # if self.displayNodes:
             #    for node in wireframe.nodes:
             #        pygame.draw.circle(self.screen, self.nodeColour, (int(node.x), int(node.y)), self.nodeRadius, 0)
 
@@ -88,14 +93,12 @@ class ProjectionViewer:
     def rotateAll(self, axis, theta):
         """ Rotate all wireframe about their centre, along a given axis by a given angle. """
 
+        self.rotations[axis] += theta
+
         rotateFunction = 'rotate' + axis
 
         bolidWireframe = self.wireframes.get('bolid')
         if bolidWireframe:
-            centre = bolidWireframe.findCentre()
+            self.center = bolidWireframe.findCentre()
         else:
-            centre = (0,0,0)
-
-
-        for wireframe in self.wireframes.itervalues():
-            getattr(wireframe, rotateFunction)(centre, theta)
+            self.center = (0,0,0)
