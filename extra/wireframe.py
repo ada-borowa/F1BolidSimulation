@@ -22,9 +22,10 @@ class Wireframe:
         self.bodyLength = 340
         #gravity
         self.gravityVector = Vector3d(0, 0.03, 0)
+        self.gravityVector2 = Vector3d(0, 0.05, 0)
         #spring
         self.response = 2.0
-        self.k = 0.004
+        self.k = 0.04
         self.springForceVectorFront = Vector3d(0,0,0)
         self.springForceVectorRear = Vector3d(0,0,0)
         #absorber
@@ -188,7 +189,7 @@ class Wireframe:
                 node.speedVector = self._hitedGroundSpeed(self.groundVector, node.speedVector)
 
             elif self.groundBack and (self.rearTireIndexesRight[0] <= i < self.rearTireIndexesRight[1] or self.rearTireIndexesLeft[0] <= i < self.rearTireIndexesLeft[1]):
-                node.speedVector = node.speedVector.add(self.gravityVector)
+                node.speedVector = node.speedVector.add(self.gravityVector2)
                 node.speedVector = self._hitedGroundSpeed(self.groundVector, node.speedVector)
 
             elif (self.frontTireIndexesRight[0] <= i < self.frontTireIndexesRight[1] or self.frontTireIndexesLeft[0] <= i < self.frontTireIndexesLeft[1]):
@@ -213,13 +214,13 @@ class Wireframe:
 
             else:
                 node.speedVector = node.speedVector.add(self.gravityVector)
-                node.speedVector = node.speedVector.add(self.springForceVectorFront) # TODO
-                node.speedVector = node.speedVector.add(self.absorberForceVectorFront)
+                node.speedVector = node.speedVector.add((self.springForceVectorFront.add(self.springForceVectorRear)).mul(0.45)) # TODO
+                node.speedVector = node.speedVector.add((self.absorberForceVectorFront.add(self.absorberForceVectorRear)).mul(0.53))
 
             #changes position
 
-            node.x += node.speedVector.x - 0.001
-            node.y += node.speedVector.y + 0.0001
+            node.x += node.speedVector.x
+            node.y += node.speedVector.y
             node.z += node.speedVector.z
 
 
@@ -228,11 +229,12 @@ class Wireframe:
         anc3new = self.nodes[self.ancor3index]
 
         Cnew = Vector3d(anc3new.x-anc1new.x, anc3new.y-anc1new.y, anc3new.z-anc1new.z)
+        if Cnew.norm() < 0.9999*C.norm():
+                Cnew.y *= 1.01
 
         cosangle = Cnew.cos(C)
         # print cosangle, C.cos(Cnew)
         angle = - math.acos(cosangle)
-        print angle
 
         for i, node in enumerate(self.nodes):
             if node.part == 'body':
