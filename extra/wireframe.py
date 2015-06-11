@@ -15,6 +15,11 @@ class Wireframe:
         self.springs = []
         self.groundFront = False
         self.groundBack = False
+        self.frontTireIndexesRight = []
+        self.frontTireIndexesLeft = []
+        self.rearTireIndexesRight = []
+        self.rearTireIndexesLeft = []
+        self.bodyLength = 340
         #gravity
         self.gravityVector = Vector3d(0, 0.03, 0)
         #spring
@@ -147,9 +152,6 @@ class Wireframe:
         diffSpeed = edge.start.speedVector.mul(-1).add(edge.stop.speedVector)
         self.absorberForceVectorFront = diffSpeed.mul(self.beta)
 
-        diffSpeed = edge.start.speedVector.mul(-1).add(edge.stop.speedVector)
-        self.absorberForceVectorFront = diffSpeed.mul(self.beta)
-
         edge = self.springs[2]
         length = math.sqrt(math.pow(edge.start.x - edge.stop.x, 2) + math.pow(edge.start.y - edge.stop.y, 2) +
                            math.pow(edge.start.z - edge.stop.z, 2))
@@ -171,8 +173,8 @@ class Wireframe:
     def move(self):
         #evaluates position in (x,y) of every node
 
-        anc1 = self.nodes[self.ancor1index]
-        anc3 = self.nodes[self.ancor3index]
+        anc1 = self.springs[0].start
+        anc3 = self.springs[2].start
 
         C = Vector3d(anc3.x-anc1.x, anc3.y-anc1.y, anc3.z-anc1.z)
 
@@ -181,38 +183,46 @@ class Wireframe:
             #     continue
             #gravity
             #bouncing off the ground for tires and suspension
-            if self.groundFront == True and (self.frontTireIndexesRight[0] <= i < self.frontTireIndexesRight[1] or self.frontTireIndexesLeft[0] <= i < self.frontTireIndexesLeft[1]):
-                pass
+            if self.groundFront and (self.frontTireIndexesRight[0] <= i < self.frontTireIndexesRight[1] or self.frontTireIndexesLeft[0] <= i < self.frontTireIndexesLeft[1]):
                 node.speedVector = node.speedVector.add(self.gravityVector)
                 node.speedVector = self._hitedGroundSpeed(self.groundVector, node.speedVector)
-            elif self.groundBack == True and (self.rearTireIndexesRight[0] <= i < self.rearTireIndexesRight[1] or self.rearTireIndexesLeft[0] <= i < self.rearTireIndexesLeft[1]):
-                node.speedVector = self._hitedGroundSpeed(self.groundVector, node.speedVector)
+
+            elif self.groundBack and (self.rearTireIndexesRight[0] <= i < self.rearTireIndexesRight[1] or self.rearTireIndexesLeft[0] <= i < self.rearTireIndexesLeft[1]):
                 node.speedVector = node.speedVector.add(self.gravityVector)
+                node.speedVector = self._hitedGroundSpeed(self.groundVector, node.speedVector)
+
             elif (self.frontTireIndexesRight[0] <= i < self.frontTireIndexesRight[1] or self.frontTireIndexesLeft[0] <= i < self.frontTireIndexesLeft[1]):
-                node.speedVector = node.speedVector.add(self.gravityVector)
+                #node.speedVector = node.speedVector.add(self.gravityVector)
                 node.speedVector = node.speedVector.add(self.springForceVectorFront.mul(-1*self.response))
                 node.speedVector = node.speedVector.add(self.absorberForceVectorFront.mul(-1*self.response))
+
             elif (self.rearTireIndexesRight[0] <= i < self.rearTireIndexesRight[1] or self.rearTireIndexesLeft[0] <= i < self.rearTireIndexesLeft[1]):
-                node.speedVector = node.speedVector.add(self.gravityVector)
-                node.speedVector = node.speedVector.add(self.absorberForceVectorRear.mul(-1*self.response))
+                #node.speedVector = node.speedVector.add(self.gravityVector)
                 node.speedVector = node.speedVector.add(self.springForceVectorRear.mul(-1*self.response))
+                node.speedVector = node.speedVector.add(self.absorberForceVectorRear.mul(-1*self.response))
+
             elif i in [self.ancor1index, self.ancor2index]:
                 node.speedVector = node.speedVector.add(self.gravityVector)
                 node.speedVector = node.speedVector.add(self.springForceVectorFront) # TODO
                 node.speedVector = node.speedVector.add(self.absorberForceVectorFront)
+
             elif i in [self.ancor3index, self.ancor4index]:
                 node.speedVector = node.speedVector.add(self.gravityVector)
                 node.speedVector = node.speedVector.add(self.springForceVectorRear) # TODO
                 node.speedVector = node.speedVector.add(self.absorberForceVectorRear)
+
             else:
                 node.speedVector = node.speedVector.add(self.gravityVector)
-                node.speedVector = node.speedVector.add(self.springForceVectorRear) # TODO
-                node.speedVector = node.speedVector.add(self.absorberForceVectorRear)
+                node.speedVector = node.speedVector.add(self.springForceVectorFront) # TODO
+                node.speedVector = node.speedVector.add(self.absorberForceVectorFront)
 
             #changes position
-            node.x += node.speedVector.x
-            node.y += node.speedVector.y
+
+            node.x += node.speedVector.x - 0.001
+            node.y += node.speedVector.y + 0.0001
             node.z += node.speedVector.z
+
+
 
         anc1new = self.nodes[self.ancor1index]
         anc3new = self.nodes[self.ancor3index]
@@ -221,14 +231,15 @@ class Wireframe:
 
         cosangle = Cnew.cos(C)
         # print cosangle, C.cos(Cnew)
-        angle = -math.acos(cosangle)
+        angle = - math.acos(cosangle)
+        print angle
 
         for i, node in enumerate(self.nodes):
             if node.part == 'body':
                 # adds spring and absorber influence to the body nodes
                 pass
-                # node.speedVector = node.speedVector.add(self.springForceVectorFront) # TODO
-                # node.speedVector = node.speedVector.add(self.absorberForceVectorFront)
+                #node.speedVector = node.speedVector.add(self.springForceVectorFront) # TODO
+                #node.speedVector = node.speedVector.add(self.absorberForceVectorFront)
 
                 if i in [self.ancor1index, self.ancor2index, self.ancor3index, self.ancor4index]:
                     continue
@@ -239,4 +250,6 @@ class Wireframe:
                 node.x = anc1new.x + a.x
                 node.y = anc1new.y + a.y
                 node.z = anc1new.z + a.z
+
+                #print "%d %d" % (node.x, node.y)
 

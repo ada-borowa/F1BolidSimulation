@@ -64,11 +64,11 @@ if __name__ == "__main__":
     bolid.addNodes(tire_nodes4)
     bolid.addEdges(tire_edges4)
     bolid.addSpring(count, count+1)
-    bolid.translate3d(Vector3d(500, 0, 0))
 
     bolid.ancor4index = count
     bolid.rearTireIndexesLeft = (count+1, count+len(tire_nodes4))
     count += len(tire_nodes4)
+    bolid.translate3d(Vector3d(500, 0, 0))
 
     road_wf = Wireframe()
 
